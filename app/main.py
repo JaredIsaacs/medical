@@ -3,10 +3,16 @@ import time
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import schedule
+import configparser
+import google.generativeai as genai
+
+config = configparser.ConfigParser()
+config.read('config.cfg')
+api_key = config.get('DEFAULT', 'gemini_api')
+genai.configure(api_key=api_key)
 
 popular_tickers = [
-    "AAPL", "MSFT", "AMZN", "GOOG", "GOOGL", "META", "TSLA", "NVDA", "BRK.B", "UNH", 
+    "AAPL", "MSFT", "AMZN", "GOOG", "GOOGL", "META", "TSLA", "NVDA", "UNH", 
     "JNJ", "XOM", "V", "JPM", "PG", "CVX", "MA", "HD", "LLY", "ABBV", 
     "PFE", "MRK", "PEP", "KO", "BAC", "TMO", "AVGO", "COST", "CSCO", "MCD", 
     "WMT", "DIS", "DHR", "ACN", "LIN", "NEE", "VZ", "ADBE", "CRM", "CMCSA", 
@@ -30,6 +36,10 @@ selected_ticker = st.selectbox("Tickers", popular_tickers)
 
 stock = yf.Ticker(selected_ticker)
 data = stock.history(period="1d", interval="1m")
+
+# Use st.empty to create a placeholder for the dataframe
+stockframe = st.empty()
+aiframe = st.empty()
 
 def process_stock_update():
   global rolling_window, data
@@ -72,6 +82,7 @@ def get_market_open_duration(window):
 
 #Function to calculate insights like moving averages and trends
 def calculate_insights(window):
+    global selected_ticker
     if len(window) >= 5:
         # Calculate 5-minute rolling average of the 'Close' prices
         rolling_avg = window['Close'].rolling(window=5).mean().iloc[-1]
@@ -95,6 +106,7 @@ def calculate_insights(window):
         avg_loss = loss.rolling(window=14, min_periods=1).mean().iloc[-1]
         rs = avg_gain / avg_loss if avg_loss != 0 else float('nan')
         rsi = 100 - (100 / (1 + rs))
+        print("RS", rs)
         
         market_open_duration = get_market_open_duration(window)
 
@@ -110,17 +122,38 @@ def calculate_insights(window):
         print(f"Market has been open for {market_open_duration:.2f} minutes")
         
         #if int(market_open_duration) % 5 == 0:  # Trigger LLM every 5 minutes
-        #    get_natural_language_insights(
-        #        rolling_avg, ema, rsi, bollinger_upper, bollinger_lower,
-        #        price_change, volume_change, market_open_duration, daily_high, daily_low, buying_momentum, selling_momentum, window.index[-1].time().strftime("%H:%M:%S")
-        #    )
+        get_natural_language_insights(
+            selected_ticker, rolling_avg, ema, rsi, bollinger_upper, bollinger_lower,
+            price_change, volume_change, market_open_duration, daily_high, daily_low, buying_momentum, selling_momentum, window.index[-1].time().strftime("%H:%M:%S")
+        )
 
+def get_natural_language_insights(
+    ticker, rolling_avg, ema, rsi, bollinger_upper, bollinger_lower,
+    price_change, volume_change, market_open_duration, daily_high, daily_low, buying_momentum, selling_momentum, timestamp
 
-# Use st.empty to create a placeholder for the dataframe
-placeholder = st.empty()
+):
+    prompt = f"""
+    You are a professional stock broker. {ticker} stock has a 5-minute rolling average of {rolling_avg:.2f}.
+    The Exponential Moving Average (EMA) is {ema:.2f}, and the Relative Strength Index (RSI) is {rsi:.2f}.
+    The Bollinger Bands are set with an upper band of {bollinger_upper:.2f} and a lower band of {bollinger_lower:.2f}.
+    The price has changed by {price_change:.2f}, and the volume has shifted by {volume_change}.
+    The market has been open for {market_open_duration:.2f} minutes.
+    Today's high was {daily_high:.2f} and low was {daily_low:.2f}.
+    The buying momentum is {buying_momentum:.2f} and selling momentum is {selling_momentum:.2f}.
+    Based on this data, provide insights into the current stock trend and the general market sentiment.
+    The insights should not be longer than 100 words and should not have an introduction.
+    """
+
+    model = genai.GenerativeModel(model_name='gemini-1.5-flash')
+    response = model.generate_content(prompt)
+
+    with aiframe.container():
+      st.write(response.text)
+
+    print("Natural Language Insight:", response.text)
 
 while True:
     process_stock_update()
-    with placeholder.container():  # Use a container for better visual updates
+    with stockframe.container():  # Use a container for better visual updates
         st.dataframe(rolling_window)
-    time.sleep(60)
+    time.sleep(10)
