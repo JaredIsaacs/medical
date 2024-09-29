@@ -34,7 +34,7 @@ if x:
     advisor_page = st.Page("pages/advisor.py", title="Advisor")
     portfolio_page = st.Page("pages/portfolio.py", title="Portfolio")
     companies_page = st.Page("pages/companies.py", title="Companies")
-    sign_out = st.Page("pages/logout.py",title='Sign Out')
-    pg = st.navigation([advisor_page, portfolio_page, companies_page,])
+    sign_out = st.Page("pages/logout.py", title='Sign Out')
+    pg = st.navigation([advisor_page, portfolio_page, companies_page, sign_out])
     pg.run()
 
