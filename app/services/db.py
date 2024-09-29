@@ -31,6 +31,10 @@ class Database:
     else:
       return False
     
+  def update_user(self, userId: str, cash: str):
+    doc_ref = self.db.collection("gorillas").document(userId)
+    doc_ref.update({'money': cash})
+    
   def close(self):
     self.app.delete()
     self.db.close()
