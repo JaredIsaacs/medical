@@ -1,7 +1,4 @@
 import streamlit as st
-import requests
-import pandas as pd
-import plotly.graph_objs as go
 import yfinance as yf
 import matplotlib.pyplot as plt
 import time
