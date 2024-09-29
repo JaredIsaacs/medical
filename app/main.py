@@ -30,7 +30,7 @@ if x:
     portfolio_page = st.Page("pages/portfolio.py", title="Portfolio")
     companies_page = st.Page("pages/companies.py", title="Companies")
     sign_out = st.Page("pages/logout.py",title='Sign Out')
-    pg = st.navigation([advisor_page, portfolio_page, companies_page,])
+    pg = st.navigation([advisor_page, portfolio_page, companies_page, sign_out])
     pg.run()
 else:
     # User is not logged in, keep the sidebar hidden (already done in step 1)
