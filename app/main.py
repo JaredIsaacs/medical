@@ -1,8 +1,49 @@
 import streamlit as st
+from pages import login
+from app.services.db import Database
 
-advisor_page=st.Page("pages/advisor.py", title="Advisor", icon=":material/person:")
-portfolio_page=st.Page("pages/portfolio.py", title="Portfolio", icon=":material/account_balance:")
-companies_page=st.Page("pages/companies.py", title="Companies", icon=":material/add_to_queue:")
+def createdb():
+    return Database()
 
-pg = st.navigation([advisor_page,portfolio_page,companies_page])
-pg.run()
+# 2. Perform login check
+x = login.joniFunc()
+
+# 3. Conditionally show the sidebar
+if x:
+    # User is logged in, show the sidebar
+    st.markdown(
+        """
+        <style>
+        .stSidebar {
+            display: block; 
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    db = createdb()
+    localId = st.session_state.user_info['localId']
+    cash = db.get_user(localId)
+    if not cash:
+        cash = db.create_user(localId)
+
+    print(cash)
+
+    advisor_page = st.Page("pages/advisor.py", title="Advisor")
+    portfolio_page = st.Page("pages/portfolio.py", title="Portfolio")
+    companies_page = st.Page("pages/companies.py", title="Companies")
+    sign_out = st.Page("pages/logout.py",title='Sign Out')
+    pg = st.navigation([advisor_page, portfolio_page, companies_page,])
+    pg.run()
+else:
+    # User is not logged in, keep the sidebar hidden (already done in step 1)
+    st.markdown(
+        """
+        <style>
+        .stSidebar {
+            display: none; 
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,)
+    st.stop()  # Stop execution if not logged in
