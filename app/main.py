@@ -26,8 +26,7 @@ if x:
     cash = db.get_user(localId)
     if not cash:
         cash = db.create_user(localId)
-
-    print(cash)
+    st.session_state['cash']=cash
 
     advisor_page = st.Page("pages/advisor.py", title="Advisor")
     portfolio_page = st.Page("pages/portfolio.py", title="Portfolio")
