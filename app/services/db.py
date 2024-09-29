@@ -10,7 +10,7 @@ class Database:
       self.app = firebase_admin.get_app() 
     except ValueError as e:
       # If an app instance doesn't exist, initialize it
-      self.cred = credentials.Certificate("/Users/jaredisaacs/Desktop/medical/app/services/gorilla-gambling-firebase-adminsdk-vp6ev-29d8040597.json")
+      self.cred = credentials.Certificate("app/services/gorilla-gambling-firebase-adminsdk-vp6ev-29d8040597.json")
 
       self.app = firebase_admin.initialize_app(self.cred)
 
