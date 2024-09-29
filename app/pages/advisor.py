@@ -41,6 +41,9 @@ data = stock.history(period="1d", interval="1m")
 stockframe = st.empty()
 aiframe = st.empty()
 
+with aiframe.container():
+      st.write("Waiting for 5 stock ticks...")
+
 def process_stock_update():
   global rolling_window, data
   global daily_high, daily_low, buying_momentum, selling_momentum

@@ -1,5 +1,9 @@
 import streamlit as st
 from pages import login
+from app.services.db import Database
+
+def createdb():
+    return Database()
 
 # 2. Perform login check
 x = login.joniFunc()
@@ -17,6 +21,13 @@ if x:
         """,
         unsafe_allow_html=True,
     )
+    db = createdb()
+    localId = st.session_state.user_info['localId']
+    cash = db.get_user(localId)
+    if not cash:
+        cash = db.create_user(localId)
+
+    print(cash)
 
     advisor_page = st.Page("pages/advisor.py", title="Advisor")
     portfolio_page = st.Page("pages/portfolio.py", title="Portfolio")
