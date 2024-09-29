@@ -3,8 +3,11 @@ import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
 import time
+from app.services.db import Database
 cash = st.session_state['cash']
-balance=cash['money']
+balance= int(cash['money'])
+db = Database()
+localid=st.session_state.user_info['localId']
 st.write("Your current balance is: $",balance)
 popular_tickers = {'Apple Inc.': 'AAPL', 'Microsoft Corporation': 'MSFT', 'Amazon.com Inc.': 'AMZN', 'Alphabet Inc. (Class C)': 'GOOG', 'Alphabet Inc. (Class A)': 'GOOGL', 'Meta Platforms Inc.': 'META', 'Tesla Inc.': 'TSLA', 'NVIDIA Corporation': 'NVDA', 'UnitedHealth Group Incorporated': 'UNH', 'Johnson & Johnson': 'JNJ', 'Exxon Mobil Corporation': 'XOM', 'Visa Inc.': 'V', 'JPMorgan Chase & Co.': 'JPM', 'Procter & Gamble Company': 'PG', 'Chevron Corporation': 'CVX', 'Mastercard Incorporated': 'MA', 'The Home Depot Inc.': 'HD', 'Eli Lilly and Company': 'LLY', 'AbbVie Inc.': 'ABBV', 'Pfizer Inc.': 'PFE', 'Merck & Co. Inc.': 'MRK', 'PepsiCo Inc.': 'PEP', 'The Coca-Cola Company': 'KO', 'Bank of America Corporation': 'BAC', 'Thermo Fisher Scientific Inc.': 'TMO', 'Broadcom Inc.': 'AVGO', 'Costco Wholesale Corporation': 'COST', 'Cisco Systems Inc.': 'CSCO', "McDonald's Corporation": 'MCD', 'Walmart Inc.': 'WMT', 'The Walt Disney Company': 'DIS', 'Danaher Corporation': 'DHR', 'Accenture plc': 'ACN', 'Linde plc': 'LIN', 'NextEra Energy Inc.': 'NEE', 'Verizon Communications Inc.': 'VZ', 'Adobe Inc.': 'ADBE', 'Salesforce Inc.': 'CRM', 'Comcast Corporation': 'CMCSA', 'Nike Inc.': 'NKE', 'Wells Fargo & Company': 'WFC', 'Intel Corporation': 'INTC', 'Texas Instruments Incorporated': 'TXN', "Lowe's Companies Inc.": 'LOW', 'Qualcomm Incorporated': 'QCOM', 'Amgen Inc.': 'AMGN', 'Honeywell International Inc.': 'HON', 'Philip Morris International Inc.': 'PM', 'United Parcel Service Inc.': 'UPS', 'Caterpillar Inc.': 'CAT', 'The Goldman Sachs Group Inc.': 'GS', 'International Business Machines Corporation': 'IBM', 'Raytheon Technologies Corporation': 'RTX', 'Deere & Company': 'DE', 'Morgan Stanley': 'MS', 'General Electric Company': 'GE', 'Intuit Inc.': 'INTU', 'Advanced Micro Devices Inc.': 'AMD', 'Starbucks Corporation': 'SBUX', 'Medtronic plc': 'MDT', 'The Charles Schwab Corporation': 'SCHW', 'BlackRock Inc.': 'BLK', 'AT&T Inc.': 'T', 'The Boeing Company': 'BA', 'ServiceNow Inc.': 'NOW', 'American Express Company': 'AXP', 'S&P Global Inc.': 'SPGI', 'Prologis Inc.': 'PLD', 'Gilead Sciences Inc.': 'GILD', 'Intuitive Surgical Inc.': 'ISRG', 'Automatic Data Processing Inc.': 'ADP', 'TJX Companies Inc.': 'TJX', 'CVS Health Corporation': 'CVS', 'American Tower Corporation': 'AMT', 'Elevance Health Inc.': 'ELV', 'The Cigna Group': 'CI', 'Lockheed Martin Corporation': 'LMT', 'ConocoPhillips': 'COP', 'Marsh McLennan Companies Inc.': 'MMC', 'Bristol-Myers Squibb Company': 'BMY', 'Stryker Corporation': 'SYK', 'Oracle Corporation': 'ORCL', 'PayPal Holdings Inc.': 'PYPL', 'T-Mobile US Inc.': 'TMUS', 'Mondelez International Inc.': 'MDLZ', 'Analog Devices Inc.': 'ADI', 'Netflix Inc.': 'NFLX', 'Abbott Laboratories': 'ABT', 'Duke Energy Corporation': 'DUK', 'The Southern Company': 'SO', 'Chubb Limited': 'CB', 'Northrop Grumman Corporation': 'NOC', 'Zoetis Inc.': 'ZTS', 'Fiserv Inc.': 'FISV', 'Aon plc': 'AON', 'Intercontinental Exchange Inc.': 'ICE', 'The Progressive Corporation': 'PGR', 'CSX Corporation': 'CSX', 'Humana Inc.': 'HUM'}
 st.title("Real-time Stock Prices")
@@ -43,8 +46,9 @@ while True:
     st.write(f"Latest Price ({latest_time}): {latest_price}")
     st.write("How many stocks would you like to buy:")
     number_of_stocks=st.text_input("How many stocks would you like to buy:", 0)
-    balance=balance-(int(number_of_stocks)*latest_price)
+    balance= round(balance-(int(number_of_stocks)*latest_price), 2)
     st.write("Your current balance is", balance)
+    db.update_user(localid, balance)
     # Sleep for 1 minute before fetching new data
     time.sleep(60)
 
